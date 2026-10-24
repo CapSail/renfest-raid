@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RenFest Day Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#120c0a;--panel:#1e1512;--panel2:#2a1d18;--line:#3f2d24;
+  --text:#f6ecdc;--muted:#b9a68f;--gold:#f0c35a;--gold2:#b8862b;--ember:#ff6a2b;--red:#e0402f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(120% 60% at 50% 0%,#3a1a0e 0%,#120c0a 60%) fixed}
+#embers{position:fixed;inset:0;pointer-events:none;z-index:0}
+header,main,#sheet{position:relative;z-index:2}
+header{padding:14px 16px 10px;position:sticky;top:0;z-index:30;background:linear-gradient(180deg,rgba(18,12,10,.97),rgba(18,12,10,.88));backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.brand{display:flex;justify-content:space-between;align-items:center}
+.logo{font-family:"Cinzel Decorative",serif;font-weight:900;font-size:21px;line-height:1;background:linear-gradient(180deg,#ffe7a3,#f0c35a 45%,#a8701f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 6px rgba(240,140,40,.35))}
+.logo small{display:block;font-family:Cinzel,serif;font-size:10.5px;letter-spacing:3px;-webkit-text-fill-color:var(--muted);margin-top:4px;font-weight:700}
+.clock{white-space:nowrap;font-family:Cinzel,serif;font-weight:900;font-size:19px;color:var(--text);text-align:right}
+.clock small{display:block;font-family:Inter;font-size:10px;color:var(--muted);letter-spacing:1px;font-weight:600}
+.preview{margin-top:8px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.preview input{flex:1;accent-color:var(--gold)}
+nav{display:flex;gap:6px;margin-top:10px}
+nav button{flex:1;padding:10px 0;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:Cinzel,serif;font-weight:700;font-size:13.5px;letter-spacing:.5px}
+nav button.on{background:linear-gradient(180deg,#ffd77a,#d49a35);color:#2a1606;border-color:#ffd77a;box-shadow:0 0 18px rgba(240,170,60,.35)}
+main{padding:14px 14px 60px;max-width:760px;margin:0 auto}
+.view{display:none}.view.on{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}}
+.card{background:linear-gradient(180deg,rgba(42,29,24,.92),rgba(30,21,18,.92));border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:13px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.lbl{font-family:Cinzel,serif;font-size:12px;letter-spacing:2px;color:var(--gold);font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+/* hero */
+.hero{position:relative;overflow:hidden;border-radius:20px;padding:18px 18px 16px;margin-bottom:13px;border:1px solid #6b4a22;background:
+  radial-gradient(90% 120% at 100% 0%,rgba(255,120,40,.28),transparent 60%),
+  linear-gradient(160deg,#3a2414,#1c120e);box-shadow:0 0 0 1px rgba(240,195,90,.15) inset,0 14px 40px rgba(0,0,0,.5)}
+.hero.live{border-color:var(--red);background:radial-gradient(90% 120% at 100% 0%,rgba(255,60,40,.38),transparent 60%),linear-gradient(160deg,#3b1512,#1c0e0c)}
+.hero .tag{font-family:Cinzel,serif;font-size:11px;letter-spacing:3px;color:var(--gold);font-weight:900;display:flex;align-items:center;gap:8px}
+.hero.live .tag{color:#ff8f7d}
+.dot{width:9px;height:9px;border-radius:50%;background:#ff4a3a;box-shadow:0 0 10px #ff4a3a;animation:p 1.2s infinite}
+@keyframes p{50%{opacity:.25}}
+.hero .big{display:flex;align-items:center;gap:14px;margin-top:10px}
+.hero .emo{font-size:56px;filter:drop-shadow(0 4px 12px rgba(255,140,40,.45));animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px) rotate(-3deg)}}
+.hero h2{font-family:Cinzel,serif;font-weight:900;font-size:24px;margin:0;line-height:1.1}
+.hero .where{color:var(--muted);font-size:13.5px;margin-top:4px}
+.count{font-family:Cinzel,serif;font-weight:900;font-size:42px;letter-spacing:1px;margin-top:12px;background:linear-gradient(180deg,#fff3cf,#f0c35a);-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+.count small{font-family:Inter;font-size:13px;-webkit-text-fill-color:var(--muted);font-weight:600;letter-spacing:0;margin-left:6px}
+.bar{height:6px;border-radius:6px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#ff7a3a,#ffd77a);border-radius:6px;transition:width .5s}
+.also{margin-top:12px;font-size:12.5px;color:var(--muted)}
+.also b{color:var(--text)}
+/* rows */
+.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.row:first-of-type{border-top:none}
+.em{font-size:24px;width:32px;text-align:center}
+.nm{font-weight:700;font-size:15px}
+.st{font-size:12px;color:var(--muted);margin-top:1px}
+.tm{margin-left:auto;text-align:right;white-space:nowrap}
+.tm b{display:block;font-size:15px;font-variant-numeric:tabular-nums}
+.tm span{font-size:11.5px;color:var(--muted)}
+.star .nm{color:var(--gold)}
+.star .nm::before{content:"⭐ "}
+.seen{opacity:.4}
+.toggle{display:flex;gap:3px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:2px}
+.toggle button{border:0;background:none;color:var(--muted);font-size:11px;font-weight:700;padding:5px 9px;border-radius:7px;font-family:Inter;letter-spacing:0}
+.toggle button.on{background:var(--gold);color:#2a1606}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+/* timeline */
+.tlwrap{display:flex;margin:0 -14px 0 0}
+#tlLab{flex:none;width:74px;padding-top:18px;border-right:1px solid var(--line)}
+#tlLab div{height:38px;display:flex;align-items:center;font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;line-height:1.1;padding-right:6px}
+#tl{flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 14px 4px 6px}
+#tlIn{position:relative}
+.hrs{position:relative;height:18px}
+.hrs span{position:absolute;font-size:10.5px;color:var(--muted);transform:translateX(-50%);font-weight:600}
+.lane{position:relative;height:38px;border-top:1px dashed rgba(255,255,255,.06)}
+.lane .ln{position:sticky;left:0;z-index:3;display:inline-block;font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--muted);background:rgba(18,12,10,.85);padding:2px 6px;border-radius:6px;margin-top:11px;text-transform:uppercase}
+.blk{position:absolute;top:5px;height:28px;border-radius:8px;display:flex;align-items:center;gap:4px;padding:0 6px;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;background:var(--panel2);border:1px solid var(--line);color:var(--text);cursor:pointer}
+.blk.plan{background:linear-gradient(180deg,#ffd77a,#d49a35);color:#2a1606;border-color:#ffe39a;box-shadow:0 0 12px rgba(240,170,60,.45)}
+.blk.past{opacity:.28}
+.nowline{position:absolute;top:0;bottom:0;width:2px;background:#ff4a3a;box-shadow:0 0 10px #ff4a3a;z-index:4}
+.nowline::before{content:"NOW";position:absolute;top:-1px;left:4px;font-size:9px;font-weight:900;color:#ff6a5a;letter-spacing:1px}
+/* quests */
+.rank{display:flex;align-items:center;gap:12px}
+.rank .crest{font-size:40px}
+.rank h3{margin:0;font-family:Cinzel,serif;font-weight:900;font-size:19px;color:var(--gold)}
+.rank p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.chk{width:30px;height:30px;border-radius:9px;border:2px solid var(--gold2);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;background:rgba(0,0,0,.25)}
+.done .chk{background:linear-gradient(180deg,#ffd77a,#d49a35);border-color:#ffd77a;color:#2a1606}
+.done .nm{text-decoration:line-through;opacity:.6}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0 44px}
+.chip{font-size:12.5px;padding:4px 9px;border-radius:20px;background:var(--panel);border:1px solid var(--line);font-weight:700;font-variant-numeric:tabular-nums}
+.chip.plan{background:var(--gold);color:#2a1606;border-color:var(--gold)}
+.chip.past{opacity:.3;text-decoration:line-through}
+.chip.now{background:var(--red);border-color:var(--red);color:#fff}
+.show{padding:11px 0;border-top:1px solid var(--line)}
+.show:first-of-type{border-top:none}
+.show .h{display:flex;gap:12px;align-items:center}
+/* map */
+.mapbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.btn{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-weight:700;font-size:12.5px;font-family:Inter}
+.btn.on{background:var(--gold);color:#2a1606;border-color:var(--gold)}
+.btn.red{background:var(--red);border-color:var(--red)}
+#mapScroll{overflow:auto;border-radius:16px;border:1px solid #6b4a22;background:#120d0b;height:66vh;-webkit-overflow-scrolling:touch;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#mapWrap{position:relative;width:100%}
+#mapImg{display:block;width:100%;user-select:none;-webkit-user-drag:none}
+#route{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#route polyline{fill:none;stroke:#ff5a2a;stroke-width:.55;stroke-dasharray:1.6 1.1;stroke-linecap:round;stroke-linejoin:round;animation:march 1.2s linear infinite;filter:drop-shadow(0 0 .6px #fff)}
+@keyframes march{to{stroke-dashoffset:-2.7}}
+.pin{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;cursor:pointer;z-index:5}
+.pin .bub{background:var(--c,#f0c35a);color:#1b1006;font-weight:800;font-size:11px;padding:4px 8px;border-radius:10px;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.7);border:2px solid #1b1006;text-align:center;line-height:1.2}
+.pin .bub small{display:block;font-weight:700;font-size:10px}
+.pin .steps{display:inline-block;background:#1b1006;color:var(--gold);border-radius:8px;padding:0 5px;margin-right:4px;font-size:10px}
+.pin .tip{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #1b1006}
+.pin.next{z-index:7}
+.pin.next .bub{transform:scale(1.15);box-shadow:0 0 0 3px #fff,0 0 22px 6px rgba(255,120,40,.9)}
+.pin.soon .bub{animation:glow 1.2s infinite}
+@keyframes glow{50%{box-shadow:0 0 0 6px rgba(255,74,58,.55),0 3px 10px rgba(0,0,0,.7)}}
+.pinlist{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.pinchip{padding:6px 10px;border-radius:20px;border:2px solid var(--c);background:var(--panel2);color:var(--text);font-size:12.5px;font-weight:700}
+.pinchip.sel{background:var(--c);color:#1b1006}
+.pinchip.done::after{content:" ✓"}
+.hint{font-size:12px;color:var(--muted);margin:8px 2px}
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:49;display:none}
+#scrim.on{display:block}
+#sheet{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg,#2a1d18,#1a120f);border-top:2px solid var(--gold);border-radius:22px 22px 0 0;padding:16px 16px 26px;z-index:50;display:none;max-width:760px;margin:0 auto;box-shadow:0 -10px 40px rgba(0,0,0,.7);max-height:78vh;overflow:auto}
+#sheet.on{display:block;animation:up .2s}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+#sheet h3{margin:0 0 6px;font-family:Cinzel,serif;font-weight:900;color:var(--gold);font-size:20px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:linear-gradient(180deg,#ffd77a,#d49a35);color:#2a1606;font-family:Cinzel,serif;font-weight:900;padding:12px 18px;border-radius:14px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.6);display:none;text-align:center}
+.toast.on{display:block;animation:up .25s}
+.banner{border-radius:16px;padding:12px 14px;margin-bottom:13px;border:1px solid #6b4a22;background:linear-gradient(135deg,rgba(240,195,90,.16),rgba(30,21,18,.92));box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.banner.fresh{animation:flash 1.2s 3}
+@keyframes flash{50%{box-shadow:0 0 0 3px #ffd77a,0 0 28px rgba(255,190,80,.6)}}
+.banner .msg{font-family:Cinzel,serif;font-weight:900;font-size:17px;line-height:1.25;color:#fff3cf}
+.banner .meet{margin-top:8px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
+.banner .meet button{margin-left:auto}
+.livestat{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:600;margin-top:6px}
+.livestat .ld{width:7px;height:7px;border-radius:50%;background:#5fd36e;box-shadow:0 0 8px #5fd36e}
+.livestat.off .ld{background:#888;box-shadow:none}
+.banner.quiet{padding:8px 12px;background:rgba(30,21,18,.7)}
+.banner.quiet .livestat{margin-top:0}
+.pin.crew .bub{background:#ff3b2f;color:#fff;border-color:#fff;font-size:12px;box-shadow:0 0 0 3px rgba(255,59,47,.35),0 0 24px rgba(255,59,47,.8)}
+.pin.crew{z-index:8}
+.capt{display:block;text-align:center;font-size:12px;color:var(--muted);margin:18px 0 0;text-decoration:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="embers"></canvas>
+<header>
+  <div class="brand">
+    <div class="logo">RenFest Raid<small>TEXAS RENFEST · SAT 10/24</small></div>
+    <div class="clock" id="clock">--:--<small id="clockSub">GATES 9–8</small></div>
+  </div>
+  <div class="preview" id="previewRow" style="display:none">
+    <span>⏳ Preview</span><input type="range" id="prev" min="540" max="1215" step="5" value="600"><span id="prevLbl"></span>
+  </div>
+  <nav>
+    <button data-v="now" class="on">⚔️ Now</button>
+    <button data-v="map">🗺 Map</button>
+    <button data-v="quests">📜 Quests</button>
+  </nav>
+</header>
+
+<main>
+  <section class="view on" id="v-now">
+    <div id="banner"></div>
+    <div id="hero"></div>
+    <div class="card">
+      <div class="lbl"><span>THE DAY AT A GLANCE</span><span style="font-family:Inter;letter-spacing:0;color:var(--muted);font-size:11px">gold = plan · tap any show</span></div>
+      <div class="tlwrap"><div id="tlLab"></div><div id="tl"><div id="tlIn"></div></div></div>
+    </div>
+    <div class="card">
+      <div class="lbl"><span>COMING UP</span>
+        <div class="toggle"><button data-f="all">All shows</button><button data-f="plan">⭐ Plan</button></div>
+      </div>
+      <div id="nextList"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-map">
+    <div class="mapbar">
+      <button class="btn" id="zOut">－</button>
+      <button class="btn" id="zIn">＋</button>
+      <button class="btn on" id="routeBtn">🔥 Route</button>
+      <button class="btn" id="findBtn">🎯 Next show</button>
+      <button class="btn" id="editBtn">📍 Pins</button>
+    </div>
+    <div id="editPanel" style="display:none" class="card">
+      <div class="lbl"><span>TAP A PLACE, THEN TAP THE MAP</span></div>
+      <div class="pinlist" id="pinChips"></div>
+      <div class="hint">Drop a 📌 personal spot (car, cooler, whatever). Saves on this phone only. The 🚩 crew meet-up comes from Cap.</div>
+      <button class="btn on" id="doneBtn">Done</button>
+      <button class="btn red" id="clearBtn">Remove selected</button>
+      <button class="btn" id="resetBtn">↺ Reset all</button>
+    </div>
+    <div id="mapScroll"><div id="mapWrap"><img id="mapImg" alt="Festival map"><svg id="route" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline id="routeLine" points=""/></svg></div></div>
+    <div class="hint">Dashed fire line = your ⭐ route in order. Numbers show which stop it is. Pins glow when a show starts within 20 min.</div>
+  </section>
+
+  <section class="view" id="v-quests">
+    <div class="card"><div class="rank" id="rank"></div><div class="bar"><i id="qbar"></i></div></div>
+    <div class="card">
+      <div class="lbl"><span>⭐ THE PLAN · TAP TO CONQUER</span></div>
+      <div id="questList"></div>
+    </div>
+    <div class="card">
+      <div class="lbl"><span>EVERY SHOWTIME</span></div>
+      <div id="allList"></div>
+    </div>
+    <a class="capt" href="https://github.com/CapSail/renfest-raid/edit/main/live.txt" target="_blank" rel="noopener">✏️ Captain's controls (edit the live plan)</a>
+  </section>
+</main>
+
+<div id="scrim"></div>
+<div id="sheet"><h3 id="shTitle"></h3><div id="shBody"></div><button class="btn" style="margin-top:12px;width:100%;padding:12px" id="shClose">Close</button></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const FEST_DATE="2026-10-24";
+const STAGES={
+  arena:{name:"The Arena",c:"#f0c35a"},
+  odeon:{name:"The Odeon",c:"#7fc8ff"},
+  dove:{name:"Dove Meadow",c:"#9be38f"},
+  bower:{name:"Titania's Bower",c:"#f2a1e6"},
+  agora:{name:"Greek Agora",c:"#ff8a5c"},
+  seadevil:{name:"Sea Devil Tavern",c:"#c9b6ff"},
+  gate:{name:"Front Gate",c:"#ffffff"},
+  meet:{name:"📌 My spot",c:"#ff9a3a"}
+};
+const LANES=["odeon","dove","arena","bower","agora","seadevil"];
+const SHORT={odeon:"Odeon",dove:"Dove Meadow",arena:"Arena",bower:"Titania's Bower",agora:"Greek Agora",seadevil:"Sea Devil"};
+const SHOWS=[
+  {id:"arsene",name:"Arsene",em:"🤡",stage:"odeon",times:["09:30","11:30","13:30","15:30"],plan:"09:30",dur:30},
+  {id:"carnival",name:"Carnival of Sound",em:"🪗",stage:"dove",times:["10:30","12:30","14:30","16:30"],plan:"10:30",dur:30},
+  {id:"steel",name:"Full Steel Combat",em:"⚔️",stage:"arena",times:["12:00","16:00"],plan:"12:00",dur:30},
+  {id:"joust",name:"Hanlon-Lees Joust",em:"🐎",stage:"arena",times:["11:00","13:00","15:00","17:00"],plan:"13:00",dur:45},
+  {id:"philnick",name:"PhilNick the Great",em:"🗣️",stage:"bower",times:["11:30","13:30","15:30"],plan:"15:30",dur:30},
+  {id:"sons",name:"Sons of Olympus",em:"🔥",stage:"agora",times:["11:00","13:00","15:00","17:00"],plan:"17:00",dur:30},
+  {id:"pride",name:"Pride of Bedlam",em:"🏴‍☠️",stage:"seadevil",times:["12:30","14:30","16:30","18:00"],plan:"18:00",dur:30},
+  {id:"fire",name:"Royal Fireworks",em:"🎆",stage:"arena",times:["19:50"],plan:"19:50",dur:20}
+];
+const RANKS=[[0,"🧑‍🌾","Humble Peasant","The day awaits, m'lord."],[.25,"🛡️","Squire","Off to a fine start."],[.5,"⚔️","Knight of the Realm","Halfway to glory."],[.75,"🏰","Lord of the Faire","The crowd knows your name."],[1,"👑","Legend of New Market","Every quest conquered. Bow down."]];
+SHOWS.forEach(s=>s.def=s.plan);
+const LANDMARKS={globe:["Globe Theatre",60.8,10.8],quad:["The Quad",59.8,28.6],pirate:["Thirsty Pirate Pub",57.5,65.7],redlion:["Red Lion Tavern",44,20.5],falcon:["Falconer's Heath",15,48.7],barbarian:["Barbarian Inn",13.5,56],arbor:["Arborhause",20,19.7],mocking:["Mockingbird Market",56,42.9],slayer:["Slayer's Castle",65,69.5],forest:["Forest Gazebo",4.5,58],polish:["Polish Pub Stage",8.75,38.6],gazebo:["Music Gazebo",69.5,33.6],aberfeldy:["Kingdom of Aberfeldy",71.5,20.5],florence:["Florence Market",20.75,24.7],italian:["Italian Village",27.75,94.3],maze:["The Maze",11,83.5],pony:["Pony Rides",51,50.2],firstaid:["First Aid",72,39.8]};
+const toMin=t=>{const[h,m]=t.split(":").map(Number);return h*60+m};
+const fmt=m=>{let h=Math.floor(m/60),mm=m%60,ap=h>=12?"PM":"AM";h=h%12||12;return h+":"+String(mm).padStart(2,"0")+" "+ap};
+let EVENTS=[],PLAN=[];
+function rebuildEvents(){EVENTS=SHOWS.flatMap(s=>s.times.map(t=>({s,start:toMin(t),end:toMin(t)+s.dur,plan:t===s.plan}))).sort((a,b)=>a.start-b.start||b.plan-a.plan);PLAN=EVENTS.filter(e=>e.plan)}
+rebuildEvents();
+const store={get(k,d){try{const v=localStorage.getItem("trf_"+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem("trf_"+k,JSON.stringify(v))}catch(e){}}};
+let filter=store.get("filter","all"), previewMin=null, seen=store.get("seen",{});
+const $=id=>document.getElementById(id);
+
+function central(){
+  const p=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Chicago",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
+  const g=t=>p.find(x=>x.type===t).value;
+  return{date:`${g("year")}-${g("month")}-${g("day")}`,sec:+g("hour")*3600+ +g("minute")*60+ +g("second")};
+}
+function nowSec(){
+  const c=central();
+  if(c.date===FEST_DATE){$("previewRow").style.display="none";return c.sec}
+  $("previewRow").style.display="flex";
+  if(previewMin===null){previewMin=c.date<FEST_DATE?540:1215;$("prev").value=previewMin}
+  return previewMin*60;
+}
+const rel=(m,now)=>{const d=m-now;if(d<=0)return"now";if(d<60)return"in "+d+" min";const h=Math.floor(d/60),r=d%60;return"in "+h+"h"+(r?" "+r+"m":"")};
+const hms=s=>{s=Math.max(0,s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return(h?h+":"+String(m).padStart(2,"0"):m)+":"+String(x).padStart(2,"0")};
+
+function nextPlanned(now){return PLAN.find(e=>e.end>now&&!seen[e.s.id])||PLAN.find(e=>e.end>now)}
+function heroHTML(ns){
+  const now=Math.floor(ns/60);
+  const live=EVENTS.filter(e=>e.start<=now&&now<e.end);
+  const livePlan=live.find(e=>e.plan)||null;
+  const target=livePlan||nextPlanned(now)||EVENTS.find(e=>e.start>now);
+  if(now<540&&!target) return "";
+  if(!target){return `<div class="hero"><div class="tag">🎆 QUEST COMPLETE</div><div class="big"><div class="emo">🍻</div><div><h2>Huzzah, crew!</h2><div class="where">That's a wrap on the Faire. Drive safe.</div></div></div></div>`}
+  const isLive=target.start<=now;
+  let body;
+  if(isLive){
+    const pct=Math.min(100,(ns-target.start*60)/(target.s.dur*60)*100);
+    body=`<div class="count">${hms(target.end*60-ns)}<small>left · ends ~${fmt(target.end)}</small></div><div class="bar"><i style="width:${pct}%"></i></div>`;
+  } else {
+    const total=Math.max(1,target.start*60-ns);
+    body=`<div class="count">${hms(total)}<small>until ${fmt(target.start)}</small></div>`;
+  }
+  const others=live.filter(e=>e!==target);
+  const also=others.length?`<div class="also">Also on now: ${others.map(e=>`<b>${e.s.em} ${e.s.name}</b>`).join(", ")}</div>`:
+    (()=>{const n2=EVENTS.find(e=>e.start>now&&e!==target);return n2?`<div class="also">Then: <b>${n2.s.em} ${n2.s.name}</b> · ${fmt(n2.start)} · ${STAGES[n2.s.stage].name}</div>`:""})();
+  return `<div class="hero ${isLive?"live":""}" data-stage="${target.s.stage}">
+    <div class="tag">${isLive?'<span class="dot"></span>HAPPENING NOW':(target.plan?"⭐ NEXT QUEST":"NEXT UP")}</div>
+    <div class="big"><div class="emo">${target.s.em}</div><div><h2>${target.s.name}</h2><div class="where">📍 ${STAGES[target.s.stage].name}</div></div></div>
+    ${body}${also}</div>`;
+}
+const PX=2.6, T0=540, T1=1215;
+function buildTimeline(){
+  const w=(T1-T0)*PX+20;
+  let h=`<div class="hrs" style="width:${w}px">`;
+  for(let m=T0;m<=1200;m+=60)h+=`<span style="left:${(m-T0)*PX}px">${fmt(m).replace(":00","").replace(" ","")}</span>`;
+  h+=`</div>`;
+  LANES.forEach(k=>{
+    h+=`<div class="lane" style="width:${w}px">`;
+    EVENTS.filter(e=>e.s.stage===k).forEach((e,i)=>{
+      h+=`<div class="blk ${e.plan?"plan":""}" data-i="${EVENTS.indexOf(e)}" style="left:${(e.start-T0)*PX}px;width:${Math.max(e.s.dur*PX,64)}px">${e.s.em} ${fmt(e.start).replace(" PM","").replace(" AM","")}</div>`;
+    });
+    h+=`</div>`;
+  });
+  h+=`<div class="nowline" id="nowline"></div>`;
+  $("tlIn").innerHTML=h; $("tlLab").innerHTML=LANES.map(k=>`<div>${SHORT[k]}</div>`).join(""); $("tlIn").style.width=w+"px";
+  $("tlIn").querySelectorAll(".blk").forEach(b=>b.onclick=()=>openShow(EVENTS[+b.dataset.i].s));
+}
+let tlScrolled=false;
+function updateTimeline(now){
+  document.querySelectorAll(".blk").forEach(b=>b.classList.toggle("past",EVENTS[+b.dataset.i].end<=now));
+  const nl=$("nowline");const x=(Math.min(Math.max(now,T0),T1)-T0)*PX;nl.style.left=x+"px";nl.style.display=(now>=T0&&now<=T1)?"block":"none";
+  if(!tlScrolled&&$("tl").clientWidth){$("tl").scrollLeft=Math.max(0,x-90);tlScrolled=true}
+}
+function rowHTML(e,now){
+  const live=e.start<=now&&now<e.end;
+  return `<div class="row ${e.plan?"star":""}" data-sid="${e.s.id}"><div class="em">${e.s.em}</div><div><div class="nm">${e.s.name}</div><div class="st">${STAGES[e.s.stage].name}</div></div><div class="tm"><b>${fmt(e.start)}</b><span>${live?"🔴 on now":rel(e.start,now)}</span></div></div>`;
+}
+function renderSlow(ns){
+  const now=Math.floor(ns/60);
+  const up=EVENTS.filter(e=>e.end>now&&(filter==="all"||e.plan)).slice(0,6);
+  $("nextList").innerHTML=up.length?up.map(e=>rowHTML(e,now)).join(""):`<div class="empty">Nothing left on the schedule. Hope the fireworks were worth it 🎆</div>`;
+  document.querySelectorAll(".toggle button").forEach(b=>b.classList.toggle("on",b.dataset.f===filter));
+  bindRows($("nextList"));
+  // quests
+  const n=PLAN.filter(e=>seen[e.s.id]).length;
+  const T=PLAN.length||1, r=[...RANKS].reverse().find(x=>n/T>=x[0]);
+  $("rank").innerHTML=`<div class="crest">${r[1]}</div><div><h3>${r[2]}</h3><p>${n}/${PLAN.length} quests conquered · ${r[3]}</p></div>`;
+  $("qbar").style.width=(n/T*100)+"%";
+  $("questList").innerHTML=PLAN.map(e=>{const d=!!seen[e.s.id],past=e.end<=now&&!d;return `<div class="row ${d?"done":""}" data-q="${e.s.id}" style="${past?"opacity:.55":""}"><div class="chk">${d?"✓":""}</div><div><div class="nm">${e.s.em} ${e.s.name}</div><div class="st">${STAGES[e.s.stage].name}${past?" · missed it? tap 🗺 for other times":""}</div></div><div class="tm"><b>${fmt(e.start)}</b><span>${d?"conquered":(e.start<=now&&now<e.end?"🔴 on now":(past?"passed":rel(e.start,now)))}</span></div></div>`}).join("");
+  $("questList").querySelectorAll("[data-q]").forEach(el=>el.onclick=()=>toggleSeen(el.dataset.q));
+  $("allList").innerHTML=SHOWS.map(s=>`<div class="show"><div class="h"><div class="em">${s.em}</div><div><div class="nm">${s.name}</div><div class="st">${STAGES[s.stage].name}</div></div></div><div class="chips">${s.times.map(t=>{const m=toMin(t),c=(m+s.dur<=now?"past":(m<=now?"now":""))+(t===s.plan?" plan":"");return `<span class="chip ${c}">${t===s.plan?"⭐ ":""}${fmt(m)}</span>`}).join("")}</div></div>`).join("");
+  updateTimeline(now);
+  renderPins(now);
+}
+function bindRows(root){root.querySelectorAll("[data-sid]").forEach(el=>el.onclick=()=>openShow(SHOWS.find(s=>s.id===el.dataset.sid)))}
+function toggleSeen(id){
+  seen[id]=!seen[id]; if(!seen[id])delete seen[id]; store.set("seen",seen);
+  const n=PLAN.filter(e=>seen[e.s.id]).length,T=PLAN.length||1,pn=n-1;
+  if(seen[id]){const r=[...RANKS].reverse().find(x=>n/T>=x[0]&&pn/T<x[0]);toast(r?`${r[1]} Rank up: ${r[2]}!`:`⚔️ Quest conquered! ${n}/${PLAN.length}`)}
+  tick(true);
+}
+let toastT;function toast(t,ms){const el=$("toast");el.textContent=t;el.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove("on"),ms||2200)}
+
+let lastMin=-1;
+function tick(force){
+  const ns=nowSec(), now=Math.floor(ns/60);
+  const c=central();
+  $("clock").firstChild.nodeValue=c.date===FEST_DATE?fmt(now):fmt(now);
+  $("clockSub").textContent=c.date===FEST_DATE?"LIVE · GATES 9–8":"PREVIEW MODE";
+  $("prevLbl").textContent=fmt(now);
+  $("hero").innerHTML=heroHTML(ns);
+  const h=$("hero").querySelector(".hero");if(h)h.onclick=()=>openStage(h.dataset.stage);
+  if(force||now!==lastMin){lastMin=now;renderSlow(ns)}
+}
+
+/* sheet */
+function openSheet(title,html){$("shTitle").textContent=title;$("shBody").innerHTML=html;$("sheet").classList.add("on");$("scrim").classList.add("on")}
+function closeSheet(){$("sheet").classList.remove("on");$("scrim").classList.remove("on")}
+$("shClose").onclick=closeSheet;$("scrim").onclick=closeSheet;
+function listFor(evs,now){return evs.map(e=>{const past=e.end<=now,live=e.start<=now&&!past;return `<div class="row ${e.plan?"star":""}" style="${past?"opacity:.35":""}"><div class="em">${e.s.em}</div><div><div class="nm">${e.s.name}</div><div class="st">${STAGES[e.s.stage].name}</div></div><div class="tm"><b>${fmt(e.start)}</b><span>${past?"done":(live?"🔴 on now":rel(e.start,now))}</span></div></div>`}).join("")}
+function openShow(s){const now=Math.floor(nowSec()/60);openSheet(s.em+" "+s.name,listFor(EVENTS.filter(e=>e.s===s),now)+`<button class="btn" style="margin-top:10px;width:100%;padding:11px" onclick="closeSheet();goMap('${s.stage}')">🗺 Show ${STAGES[s.stage].name} on map</button>`)}
+function openStage(k){const now=Math.floor(nowSec()/60);const evs=EVENTS.filter(e=>e.s.stage===k);openSheet(STAGES[k].name,evs.length?listFor(evs,now):`<div class="empty">${k==="meet"?"Your personal spot. 📌":(k==="gate"?"Entrance & exit. No re-entry after 7 PM.":"No must-see shows here.")}</div>`)}
+
+/* tabs */
+function setTab(v){document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x.dataset.v===v));document.querySelectorAll(".view").forEach(el=>el.classList.toggle("on",el.id==="v-"+v));store.set("tab",v);if(v==="now"){tlScrolled=false;updateTimeline(Math.floor(nowSec()/60))}if(v==="map")initMapView()}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>setTab(b.dataset.v));
+document.querySelectorAll(".toggle button").forEach(b=>b.onclick=()=>{filter=b.dataset.f;store.set("filter",filter);tick(true)});
+$("prev").oninput=e=>{previewMin=+e.target.value;tlScrolled=false;tick(true)};
+
+/* map */
+const DEFAULT_MAP="map.jpg";
+const DEFAULT_PINS={arena:{x:38.3,y:50.2},odeon:{x:70.3,y:69.9},dove:{x:35.3,y:16.8},bower:{x:45.6,y:92.1},agora:{x:42.3,y:27.8},seadevil:{x:45,y:38},gate:{x:76.2,y:33.2}};
+let pins=store.get("pins2",JSON.parse(JSON.stringify(DEFAULT_PINS)));
+let zoom=1,editing=false,selStage=null,showRoute=store.get("route",true),mapInit=false;
+const img=$("mapImg"),wrap=$("mapWrap");
+img.src=DEFAULT_MAP;
+function setZoom(z,cx,cy){const s=$("mapScroll");const fx=cx??(s.scrollLeft+s.clientWidth/2)/s.scrollWidth,fy=cy??(s.scrollTop+s.clientHeight/2)/s.scrollHeight;zoom=Math.max(1,Math.min(5,z));wrap.style.width=(zoom*100)+"%";requestAnimationFrame(()=>{s.scrollLeft=fx*s.scrollWidth-s.clientWidth/2;s.scrollTop=fy*s.scrollHeight-s.clientHeight/2})}
+function centerOn(xp,yp){const s=$("mapScroll");s.scrollTo({left:xp/100*s.scrollWidth-s.clientWidth/2,top:yp/100*s.scrollHeight-s.clientHeight/2,behavior:"smooth"})}
+function initMapView(){if(mapInit||!img.complete||!$("mapScroll").clientWidth)return;mapInit=true;setZoom(2.4,.4,.45)}
+img.onload=()=>{if($("v-map").classList.contains("on"))initMapView()};
+function goMap(k){setTab("map");setTimeout(()=>{if(zoom<2)setZoom(2.4);setTimeout(()=>{const p=pins[k];if(p)centerOn(p.x,p.y)},60)},60)}
+$("zIn").onclick=()=>setZoom(zoom*1.4);$("zOut").onclick=()=>setZoom(zoom/1.4);
+$("routeBtn").onclick=()=>{showRoute=!showRoute;store.set("route",showRoute);tick(true)};
+$("findBtn").onclick=()=>{const now=Math.floor(nowSec()/60);const t=nextPlanned(now)||EVENTS.find(e=>e.end>now);if(t){if(zoom<2)setZoom(2.4);setTimeout(()=>{const p=pins[t.s.stage];if(p)centerOn(p.x,p.y)},60)}};
+function setEditing(on){editing=on;$("editPanel").style.display=on?"block":"none";if(on&&!selStage)selStage=pins.meet?"arena":"meet";renderChips();tick(true)}
+$("editBtn").onclick=()=>setEditing(!editing);
+$("doneBtn").onclick=()=>{selStage=null;setEditing(false)};
+$("clearBtn").onclick=()=>{if(selStage){delete pins[selStage];store.set("pins2",pins);renderChips();tick(true)}};
+$("resetBtn").onclick=()=>{pins=JSON.parse(JSON.stringify(DEFAULT_PINS));store.set("pins2",pins);renderChips();tick(true)};
+function renderChips(){$("pinChips").innerHTML=Object.entries(STAGES).map(([k,v])=>`<button class="pinchip ${k===selStage?"sel":""} ${pins[k]?"done":""}" style="--c:${v.c}" data-k="${k}">${v.name}</button>`).join("");$("pinChips").querySelectorAll(".pinchip").forEach(b=>b.onclick=()=>{selStage=b.dataset.k;renderChips()})}
+wrap.addEventListener("click",e=>{if(!editing||!selStage||e.target.closest(".pin"))return;const r=wrap.getBoundingClientRect();pins[selStage]={x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100};store.set("pins2",pins);if(selStage==="meet")toast("📌 Spot saved");renderChips();tick(true)});
+function renderPins(now){
+  wrap.querySelectorAll(".pin").forEach(p=>p.remove());
+  const target=nextPlanned(now);
+  const steps={};PLAN.forEach((e,i)=>{(steps[e.s.stage]=steps[e.s.stage]||[]).push(i+1)});
+  // route
+  const pts=[];PLAN.forEach(e=>{const p=pins[e.s.stage];if(p){const last=pts[pts.length-1];if(!last||last[0]!==p.x||last[1]!==p.y)pts.push([p.x,p.y])}});
+  $("routeLine").setAttribute("points",showRoute?pts.map(p=>p.join(",")).join(" "):"");
+  $("routeBtn").classList.toggle("on",showRoute);
+  Object.entries(pins).forEach(([k,p])=>{
+    const st=STAGES[k];if(!st)return;
+    const nx=EVENTS.find(e=>e.s.stage===k&&e.end>now);
+    const soon=nx&&nx.start-now<=20;
+    const el=document.createElement("div");
+    el.className="pin"+(soon?" soon":"")+(target&&target.s.stage===k?" next":"");
+    el.style.left=p.x+"%";el.style.top=p.y+"%";el.style.setProperty("--c",st.c);
+    const stp=showRoute&&steps[k]?`<span class="steps">${steps[k].join("·")}</span>`:"";
+    el.innerHTML=`<div class="bub">${stp}${nx?nx.s.em+" ":""}${st.name}${nx?`<small>${nx.start<=now?"🔴 ON NOW":fmt(nx.start)}${nx.plan?" ⭐":""}</small>`:""}</div><div class="tip"></div>`;
+    el.onclick=ev=>{ev.stopPropagation();if(editing){selStage=k;renderChips();return}openStage(k)};
+    wrap.appendChild(el);
+  });
+  const m=crewMeet();
+  if(m){const el=document.createElement("div");el.className="pin crew";el.style.left=m.x+"%";el.style.top=m.y+"%";
+    el.innerHTML=`<div class="bub">🚩 CREW MEET-UP<small>${esc(m.label)}</small></div><div class="tip"></div>`;
+    el.onclick=ev=>{ev.stopPropagation();openSheet("🚩 Crew meet-up",`<div class="empty" style="color:var(--text);font-size:15px"><b>${esc(m.label)}</b>${LIVE.message?`<br><br>📣 ${esc(LIVE.message)}`:""}</div>`)};
+    wrap.appendChild(el);}
+}
+
+/* embers */
+(function(){const c=$("embers"),x=c.getContext("2d");if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;let W,H,P=[];
+function rs(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio}rs();addEventListener("resize",rs);
+for(let i=0;i<34;i++)P.push(np(true));
+function np(r){return{x:Math.random()*W,y:r?Math.random()*H:H+10,v:.3+Math.random()*.9,s:(1+Math.random()*2.2)*devicePixelRatio,a:.25+Math.random()*.5,w:Math.random()*6.28}}
+(function f(){x.clearRect(0,0,W,H);P.forEach((p,i)=>{p.y-=p.v*devicePixelRatio;p.w+=.02;p.x+=Math.sin(p.w)*.4;if(p.y<-10)P[i]=np();const g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,p.s*3);g.addColorStop(0,`rgba(255,180,80,${p.a})`);g.addColorStop(1,"rgba(255,80,20,0)");x.fillStyle=g;x.beginPath();x.arc(p.x,p.y,p.s*3,0,7);x.fill()});requestAnimationFrame(f)})()})();
+
+/* ===== LIVE SYNC ===== */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const KEYS={arsene:"arsene",carnival:"carnival",carnivalofsound:"carnival",steel:"steel",fullsteel:"steel",fullsteelcombat:"steel",combat:"steel",joust:"joust",hanlonlees:"joust",hanlonleesjoust:"joust",philnick:"philnick",philnickthegreat:"philnick",sons:"sons",sonsofolympus:"sons",pirates:"pride",pride:"pride",prideofbedlam:"pride",bedlam:"pride",fireworks:"fire",royalfireworks:"fire",fire:"fire"};
+const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+let LIVE={message:"",meet:null,ok:false,at:0,err:false};
+function parseTime(v,show){
+  const t=String(v).trim().toLowerCase();
+  if(/^(skip|none|no|off|-+|x)$/.test(t))return null;
+  const m=t.match(/^(\d{1,2})(?::?(\d{2}))?\s*(a|p)?/);if(!m)return undefined;
+  const hh=+m[1],mm=+(m[2]||0);
+  const hit=show.times.find(x=>{const[a,b]=x.split(":").map(Number);return b===mm&&(a===hh||a%12===hh%12)&&(!m[3]||(m[3]==="p")===(a>=12))});
+  return hit===undefined?undefined:hit;
+}
+function findPlace(v){
+  const raw=String(v).trim(),q=norm(raw);if(!q)return null;
+  const all=[...Object.entries(STAGES).filter(([k])=>k!=="meet").map(([k,s])=>({key:k,label:s.name,x:(DEFAULT_PINS[k]||{}).x,y:(DEFAULT_PINS[k]||{}).y})),
+    ...Object.entries(LANDMARKS).map(([k,l])=>({key:k,label:l[0],x:l[1],y:l[2]}))];
+  const alias={entrance:"gate",gate:"gate",frontgate:"gate",exit:"gate",bower:"bower",titania:"bower",titaniasbower:"bower",agora:"agora",greek:"agora",greekagora:"agora",seadevil:"seadevil",seadeviltavern:"seadevil",dove:"dove",dovemeadow:"dove",pirate:"pirate",pub:"pirate",thirsty:"pirate",thirstypirate:"pirate",redlion:"redlion",lion:"redlion",firstaid:"firstaid",firstaide:"firstaid",medic:"firstaid",dragonslayer:"firstaid",gazebo:"gazebo",musicgazebo:"gazebo",castle:"slayer",maze:"maze",themaze:"maze",pony:"pony",ponyrides:"pony",quad:"quad",thequad:"quad",globe:"globe",odeon:"odeon",theodeon:"odeon",arena:"arena",thearena:"arena"};
+  const k=alias[q];
+  const strip=s=>norm(s).replace(/^the/,"");
+  let hit=k?all.find(p=>p.key===k):null;
+  if(!hit)hit=all.find(p=>norm(p.label)===q||strip(p.label)===q)||all.find(p=>strip(p.label).includes(q.replace(/^the/,""))&&q.length>=4)||all.find(p=>q.includes(strip(p.label)));
+  return hit?{label:(q.length<=norm(hit.label).length+3?hit.label:raw),x:hit.x,y:hit.y,raw}:{label:raw,x:null,y:null,raw};
+}
+function crewMeet(){const m=LIVE.meet;return m&&m.x!=null?m:null}
+function applyLive(text,quiet){
+  const cfg={message:"",meet:"",plan:{}};
+  String(text).split(/\r?\n/).forEach(line=>{
+    if(/^\s*#/.test(line))return;
+    const i=line.indexOf(":");if(i<0)return;
+    const k=norm(line.slice(0,i)),v=line.slice(i+1).trim();
+    if(k==="message"||k==="msg"||k==="note")cfg.message=v;
+    else if(k==="meetup"||k==="meet"||k==="meetupspot")cfg.meet=v;
+    else if(KEYS[k]&&v)cfg.plan[KEYS[k]]=v;
+  });
+  SHOWS.forEach(s=>{
+    if(s.id in cfg.plan){const t=parseTime(cfg.plan[s.id],s);s.plan=t===undefined?s.def:t;}
+    else s.plan=s.def;
+  });
+  rebuildEvents();
+  LIVE.message=cfg.message; LIVE.meet=cfg.meet?findPlace(cfg.meet):null;
+  buildTimeline(); tlScrolled=false;
+  const key=cfg.message+"|"+(cfg.meet||"");
+  if(key!==store.get("lastMsg","")){store.set("lastMsg",key);
+    if(!quiet&&(cfg.message||cfg.meet)){LIVE.fresh=true;toast(cfg.message?("📣 "+cfg.message):("🚩 Meet-up: "+LIVE.meet.label),5000);}}
+  tick(true);
+}
+function renderBanner(){
+  const ago=LIVE.at?Math.max(0,Math.round((Date.now()-LIVE.at)/60000)):null;
+  const live=LIVE.ok&&!LIVE.err;
+  const stat=`<div class="livestat ${live?"":"off"}"><span class="ld"></span>${live?("Live from Cap · synced "+(ago<1?"just now":ago+" min ago")):(LIVE.lastText?"No signal · showing last plan from Cap":"Offline · showing the built-in plan")}</div>`;
+  const m=LIVE.meet;
+  if(!LIVE.message&&!m){$("banner").innerHTML=`<div class="banner quiet">${stat}</div>`;return}
+  $("banner").innerHTML=`<div class="banner ${LIVE.fresh?"fresh":""}">${LIVE.message?`<div class="msg">📣 ${esc(LIVE.message)}</div>`:""}${m?`<div class="meet">🚩 Meet-up: ${esc(m.label)}${m.x!=null?`<button class="btn" id="meetGo">🗺 Show</button>`:""}</div>`:""}${stat}</div>`;
+  LIVE.fresh=false;
+  const g=$("meetGo");if(g)g.onclick=()=>{setTab("map");setTimeout(()=>{if(zoom<2)setZoom(2.4);setTimeout(()=>centerOn(m.x,m.y),60)},60)};
+}
+async function pull(){
+  try{
+    const r=await fetch("live.txt?t="+Date.now(),{cache:"no-store"});
+    if(!r.ok)throw new Error(r.status);
+    const t=await r.text();
+    LIVE.ok=true;LIVE.err=false;LIVE.at=Date.now();
+    if(t!==LIVE.lastText){LIVE.lastText=t;store.set("liveText",t);applyLive(t,false)}
+  }catch(e){LIVE.err=true}
+  renderBanner();
+}
+{const cached=store.get("liveText",null);if(cached){LIVE.lastText=cached;LIVE.err=true;applyLive(cached,true)}}
+setInterval(pull,45000);
+setInterval(renderBanner,30000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)pull()});
+addEventListener("online",pull);
+
+buildTimeline();
+renderBanner();
+pull();
+setTab(store.get("tab","now"));
+tick(true);
+setInterval(()=>tick(false),1000);
+</script>
+</body>
+</html>
