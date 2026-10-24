@@ -3,7 +3,7 @@
 # Everyone's phone updates in about a minute.
 # Lines starting with # are ignored.
 
-MESSAGE:
+MESSAGE: Test from Claude - live sync works
 MEETUP:
 
 # ⭐ Which showtime is the plan. Use one of that show's times, or SKIP.
